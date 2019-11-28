@@ -54,13 +54,13 @@ const quad::qu_formula& quad::qu_formula::operator=(qu_formula &&other) {
     return *this;
 }
 
-double quad::qu_formula::get_point(int k) {
-    if(k>=n_) throw std::invalid_argument("The required point index is out of range");
+double quad::qu_formula::get_point(size_t k) const{
+    if((k>=n_)) throw std::invalid_argument("The required point index is out of range");
     return points_[k];
 }
 
-double quad::qu_formula::get_weight(int k) {
-    if(k>=n_) throw std::invalid_argument("The required weight index is out of range");
+double quad::qu_formula::get_weight(size_t k) const{
+    if((k>=n_)) throw std::invalid_argument("The required weight index is out of range");
     return weights_[k];
 }
 

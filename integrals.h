@@ -21,20 +21,20 @@ namespace quad {
 	class qu_formula
 	{
     private:
-		int n_;
+		size_t n_;
 		double *weights_, *points_;
     public:
 		qu_formula();
-		qu_formula(int n, double *w, double *p) : n_(n), weights_(w), points_(p) {};
+		qu_formula(size_t n, double *w, double *p) : n_(n), weights_(w), points_(p) {};
         qu_formula(const qu_formula &q); //copy constructor
         qu_formula(qu_formula &&q); //move constructor
         const qu_formula& operator=(const qu_formula &q);
         const qu_formula& operator=(qu_formula &&other);
         ~qu_formula();
         
-        int get_n() {return n_;};
-        double get_weight(int k);
-        double get_point(int k);
+        int get_n() const {return n_;};
+        double get_weight(size_t k) const;
+        double get_point(size_t k) const;
 	};
 
 	typedef  double(*REAL_FUNC)(double); //the real function
