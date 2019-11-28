@@ -8,6 +8,7 @@
 #include<string>
 #include<algorithm>
 #include<utility>
+#include<cstring>
 
 namespace quad {
 
@@ -17,13 +18,23 @@ namespace quad {
 	//NB this class stores data for the segment [-1, 1]
 
 
-	struct qu_formula
+	class qu_formula
 	{
-		int n;
-		double *weights, *points;
-
-		qu_formula() {};
-		qu_formula(int n_, double *w_, double *p_) : n(n_), weights(w_), points(p_) {};
+    private:
+		int n_;
+		double *weights_, *points_;
+    public:
+		qu_formula();
+		qu_formula(int n, double *w, double *p) : n_(n), weights_(w), points_(p) {};
+        qu_formula(const qu_formula &q); //copy constructor
+        qu_formula(qu_formula &&q); //move constructor
+        const qu_formula& operator=(const qu_formula &q);
+        const qu_formula& operator=(qu_formula &&other);
+        ~qu_formula();
+        
+        int get_n() {return n_;};
+        double get_weight(int k);
+        double get_point(int k);
 	};
 
 	typedef  double(*REAL_FUNC)(double); //the real function

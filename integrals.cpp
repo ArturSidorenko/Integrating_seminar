@@ -1,14 +1,77 @@
 #include "integrals.h"
 
+quad::qu_formula::qu_formula() {
+    n_ = 1;
+    weights_ = new double[1];
+    points_ = new double[1];
+}
+
+quad::qu_formula::qu_formula(const qu_formula &other) {
+    n_ = other.n_;
+    weights_ = new double[n_];
+    points_ = new double[n_];
+    std::memcpy(weights_, other.weights_, n_);
+    std::memcpy(points_, other.points_, n_);
+}
+
+quad::qu_formula::~qu_formula() {
+    delete [] points_;
+    delete [] weights_;
+}
+
+const quad::qu_formula& quad::qu_formula::operator=(const qu_formula &other) {
+    if(this != &other) {
+        delete [] points_;
+        delete [] weights_;
+        n_ = other.n_;
+        weights_ = new double[n_];
+        points_ = new double[n_];
+        std::memcpy(weights_, other.weights_, n_);
+        std::memcpy(points_, other.points_, n_);
+    }
+    return *this;
+}
+
+quad::qu_formula::qu_formula(qu_formula &&other) {
+    weights_ = other.weights_;
+    points_ = other.points_;
+    std::swap(n_, other.n_);
+    other.weights_ = new double [1];
+    other.points_ = new double [1];
+
+}
+
+const quad::qu_formula& quad::qu_formula::operator=(qu_formula &&other) {
+    if(this !=&other) {
+        delete [] points_;
+        delete [] weights_;
+        n_ = other.n_;
+        weights_ = other.weights_;
+        points_ = other.points_;
+        other.weights_ = new double [1];
+        other.points_ = new double [1];
+    }
+    return *this;
+}
+
+double quad::qu_formula::get_point(int k) {
+    if(k>=n_) throw std::invalid_argument("The required point index is out of range");
+    return points_[k];
+}
+
+double quad::qu_formula::get_weight(int k) {
+    if(k>=n_) throw std::invalid_argument("The required weight index is out of range");
+    return weights_[k];
+}
 
 double quad::simple_quad(REAL_FUNC f, const qu_formula &q, double a, double b) {
-	int n = q.n;
+        int n = q.get_n();
 
     double ans = 0;
     double x;
     for(int i = 0; i < n; i++) {
-        x = 0.5 * (a+b) + 0.5*(b-a) * q.points[i];
-        ans += 0.5*(b-a)*q.weights[i] * f(x);
+        x = 0.5 * (a+b) + 0.5*(b-a) * q.get_point(i);
+        ans += 0.5*(b-a)*q.get_weight(i) * f(x);
     }
     return ans;
 }
@@ -79,7 +142,6 @@ void quad::find_weights(int n, double * ans, const double * p) //weights finder.
 		ans[i] = (i%2==0) * (2. / (i + 1)); //the integral of x^i over [-1,1]
 	}
 
-	std::cout << "Dingo\n";
 	try {
 		quad::Lin_eq(n, A, ans);
 	}
@@ -91,8 +153,6 @@ void quad::find_weights(int n, double * ans, const double * p) //weights finder.
 		std::cerr << "A critical error occured\n";
 		exit(-1);
 	}
-
-	std::cout << "hello\n";
 
 	delete[] A;
 }
@@ -124,7 +184,7 @@ void quad::Lin_eq(int n, double *A, double *b) {
 	for (int k = 0; k < n - 1; k++) {
 		//looking for the non-zero entry
 		cmax = col_max(A, n, k);
-		std::cout << "cmax=" << cmax << "\n";
+
 		if (cmax < err) throw std::invalid_argument("The matrix A is not inversible");
 		for (int i = k; i < n; i++) 
 			if (fabs(A[n*i + k]) > eps * cmax) {
@@ -144,6 +204,10 @@ void quad::Lin_eq(int n, double *A, double *b) {
 			add_rows(A, n, i, k, -A[n*i + k]);
 		}
 	}
+        //division on the last row
+        if (fabs(A[n*(n-1) + n-1]) < err) throw std::invalid_argument("The matrix A is not inversible");
+        b[n-1] /= A[n*n - 1];
+        divide_by(A, n, n-1, A[n*n - 1]);
 	//inverse part
 	for (int k = n - 1; k > 0; k--) {
 		for (int i = k - 1; i >= 0; i--) {
