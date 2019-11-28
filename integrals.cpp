@@ -30,7 +30,7 @@ quad::qu_formula quad::Newton_Kotes() {
 	p[2] = 1. / 3;
 	p[3] = 1;
    
-	quad::find_weights(w, p); //calculating appropriate weights
+	quad::find_weights(n, w, p); //calculating appropriate weights
 	
     return qu_formula(n,w,p);
 
@@ -47,7 +47,7 @@ quad::qu_formula quad::Gauss() {
 	p[2] =  sqrt(rad2);
 	p[3] =  sqrt(rad1);
 
-	quad::find_weights(w, p); //calculating appropriate weights
+	quad::find_weights(n, w, p); //calculating appropriate weights
 
 	return qu_formula(n, w, p);
 
@@ -63,41 +63,95 @@ quad::qu_formula quad::Naive() {
 
 }
 
-void quad::Lin_eq(double *ans, const double *A, const double *b){
-	double det = A[0] * A[3] - A[1] * A[2];
-	if (det == 0) throw std::invalid_argument("The matrix is singular");
-	ans[0] = (b[0] * A[3] - A[1] * b[1]) / det;
-	ans[1] = (A[0] * b[1] - b[0] * A[2]) / det;
 
-}
-void quad::find_weights(double * ans, const double * p) //weights finder. works only for 4 symmetric points
+void quad::find_weights(int n, double * ans, const double * p) //weights finder. works only for 4 symmetric points
 {
-	int n = 2;
 	double *A = new double[n*n];
-	double *b = new double[n];
-	double *t = new double[n];
+
 	
 	for (int j = 0; j < n; j++) A[j] = 1;
 
 	for (int i = 1; i < n; i++) {
-		for (int j = 0; j < n; j++) A[n*i+j] = A[n*(i-1) + j]*p[j]*p[j]; //Vanderwonde matrix
+		for (int j = 0; j < n; j++) A[n*i+j] = A[n*(i-1) + j]*p[j]; //Vanderwonde matrix
 	}
 
 	for (int i = 0; i < n; i++) {
-		b[i] = (2. / (2*i + 1)); //the integral of x^2i over [-1,1]
+		ans[i] = (i%2==0) * (2. / (i + 1)); //the integral of x^i over [-1,1]
 	}
 
 	std::cout << "Dingo\n";
-	Lin_eq(t, A, b);
-	ans[0] = ans[3] = t[0]*0.5;
-	ans[1] = ans[2] = t[1]*0.5;
+	try {
+		quad::Lin_eq(n, A, ans);
+	}
+	catch (const std::invalid_argument &ups) {
+		std::cerr << "An invalid argument exception occured: "<< ups.what() << "\n";
+		exit(-8);
+	}
+	catch (...) {
+		std::cerr << "A critical error occured\n";
+		exit(-1);
+	}
 
 	std::cout << "hello\n";
 
 	delete[] A;
-	delete[] b;
-	delete[] t;
 }
 
+void quad::swap_rows(double *A, int n, int p, int q) {
+	for (int j = 0; j < n; j++) std::swap(A[n*p + j], A[n*q + j]);
+}
+
+void quad::add_rows(double *A, int n, int p, int q, double m) {
+	for (int j = 0; j < n; j++) A[n*p + j] += m * A[n*q + j];
+}
+void quad::divide_by(double *A, int n, int p, double d) {
+	for (int j = 0; j < n; j++) A[n*p + j] /= d;
+}
+
+double quad::col_max(double *A, int n, int k) {
+	double m = 0;
+	for (int i = k; i < n; i++) {
+		if (fabs(A[n*i + k]) > m) m = fabs(A[n*i + k]);
+	}
+	return m;
+}
+
+void quad::Lin_eq(int n, double *A, double *b) {
+	//direct part
+	const double eps = 10e-15;
+	const double err = 10e-50;
+	double cmax;
+	for (int k = 0; k < n - 1; k++) {
+		//looking for the non-zero entry
+		cmax = col_max(A, n, k);
+		std::cout << "cmax=" << cmax << "\n";
+		if (cmax < err) throw std::invalid_argument("The matrix A is not inversible");
+		for (int i = k; i < n; i++) 
+			if (fabs(A[n*i + k]) > eps * cmax) {
+				swap_rows(A, n, i, k);
+				std::swap(b[i], b[k]);
+				break;
+		}
+		//check correctness
+		if (fabs(A[n*k + k]) < eps * cmax) throw std::invalid_argument("The matrix A is not inversible");
+		//division
+		if (fabs(A[n*k + k]) < err) throw std::invalid_argument("The matrix A is not inversible");
+		b[k] /= A[n*k+k];
+		divide_by(A, n, k, A[n*k + k]);
+		//substraction
+		for (int i = k + 1; i < n; i++) {
+			b[i] -= b[k] * A[n*i + k];
+			add_rows(A, n, i, k, -A[n*i + k]);
+		}
+	}
+	//inverse part
+	for (int k = n - 1; k > 0; k--) {
+		for (int i = k - 1; i >= 0; i--) {
+			b[i] -= b[k] * A[n*i+k];
+			add_rows(A, n, i, k, -A[n*i + k]);
+		}
+	}
+
+}
 
 

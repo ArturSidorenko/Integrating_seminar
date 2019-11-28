@@ -6,6 +6,8 @@
 #include<cmath>
 #include<exception>
 #include<string>
+#include<algorithm>
+#include<utility>
 
 namespace quad {
 
@@ -14,14 +16,6 @@ namespace quad {
 	//
 	//NB this class stores data for the segment [-1, 1]
 
-	class LogicError
-	{
-	private:
-		std::string s;
-	public:
-		LogicError(std::string r) { s = r; };
-		std::string get() { return s; };
-	};
 
 	struct qu_formula
 	{
@@ -41,7 +35,12 @@ namespace quad {
 	qu_formula Gauss();
 	qu_formula Naive();
 
-	void Lin_eq(double *ans, const double *A, const double *b);  //Linear system solving 2x2
-	void find_weights(double *ans, const double *p);
+	double col_max(double *A, int n, int k); //to control errors
+	void swap_rows(double *A, int n, int p, int q);
+	void add_rows(double *A, int n, int p, int q, double m);
+	void divide_by(double *A, int n, int p, double d);
+	void Lin_eq(int n, double *A, double *b);  //Linear system solving. The matrix A will be spoiled, the answer will be in the vector b
+
+	void find_weights(int n, double *ans, const double *p);
 
 }
