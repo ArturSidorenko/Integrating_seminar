@@ -53,5 +53,44 @@ namespace quad {
 	void Lin_eq(int n, double *A, double *b);  //Linear system solving. The matrix A will be spoiled, the answer will be in the vector b
 
 	void find_weights(int n, double *ans, const double *p);
+    
+}
 
+namespace qu2d {
+    //this namespace is for 2d integrating
+    typedef std::pair<double, double> point;
+    typedef std::pair<size_t, size_t> edge;
+    typedef std::pair<size_t, size_t> neib_side;
+    typedef std::triple<size_t, size_t, size_t> side;
+    class partition { //rectangle partition
+    private:
+        size_t nx_, ny_; //amount of pieces along each axis
+        size_t npoints_; //total amount of points
+        size_t nedge_; //amount of edges
+        size_t nsides_; //amount of sides
+        point* points_; //array of points
+        edge* edges_; //array of edges
+        side* sides_; //array of sides
+        
+    public:
+        partition(); //empty constructor
+        partition(size_t nx, size_t ny, point down, point upper); //partition of a rectangle
+        partition(std::string &fname); //loader
+        ~partition(); //destructor
+        
+        partition(const partition &other); //copy constructor
+        partition(partition &&other); //move onstructor
+        
+        const parition & operator=(const partition &other);
+        const parition & operator=(partition &&other);
+    }
+    
+    class partition_iterator: public std::iterator<std::input_iterator_tag, partition> {
+        friend class partition;
+    private:
+        partition_iterator(partition *p);
+    public:
+        partition_iterator(const partition_iterator &it);
+    }
+    
 }
