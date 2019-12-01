@@ -60,37 +60,67 @@ namespace qu2d {
     //this namespace is for 2d integrating
     typedef std::pair<double, double> point;
     typedef std::pair<size_t, size_t> edge;
-    typedef std::pair<size_t, size_t> neib_side;
-    typedef std::triple<size_t, size_t, size_t> side;
+    
+
+	typedef double(*REAL_FUNC2D)(double, double); //2d real fucnction
+
+	point get_centre(const point &p1, const point &p2); //finds the centre of the segmet between the given points
+
+
+	struct side {
+		size_t v1, v2, v3; //vertices
+		size_t e1, e2, e3; //edges
+	};
+	struct neib_side {
+		int sides;
+		size_t first, second;
+
+		neib_side() { sides = 0; }
+		void fit(size_t num);
+	};
+
+
+
+
     class partition { //rectangle partition
     private:
-        size_t nx_, ny_; //amount of pieces along each axis
         size_t npoints_; //total amount of points
-        size_t nedge_; //amount of edges
+        size_t nedges_; //amount of edges
         size_t nsides_; //amount of sides
         point* points_; //array of points
         edge* edges_; //array of edges
+		neib_side* sides_neib_to_edge_; //which sides are neighbouring to the edge
         side* sides_; //array of sides
-        
+
+		bool equal_square_; //whether the square of all the segments is equal
+		double sqr_; //square of a triangle 
+
+		double integrate_over_side(REAL_FUNC2D f, const side &k);
     public:
         partition(); //empty constructor
         partition(size_t nx, size_t ny, point down, point upper); //partition of a rectangle
-        partition(std::string &fname); //loader
+        partition(const std::string &fname); //loader
         ~partition(); //destructor
         
         partition(const partition &other); //copy constructor
         partition(partition &&other); //move onstructor
         
-        const parition & operator=(const partition &other);
-        const parition & operator=(partition &&other);
-    }
-    
-    class partition_iterator: public std::iterator<std::input_iterator_tag, partition> {
-        friend class partition;
-    private:
-        partition_iterator(partition *p);
-    public:
-        partition_iterator(const partition_iterator &it);
-    }
+        const partition & operator=(const partition &other);
+        const partition & operator=(partition &&other);
+
+		const edge & get_edge(size_t k); //get the edge by its number
+		const point & get_point(size_t k); //get the point by its number
+
+		double geron_formula(const side &k);
+		double edge_length(const edge &k);
+
+		//integrating
+		
+		double integrate(REAL_FUNC2D f);
+
+
+		//saving
+		void save(const std::string &fname);
+	};
     
 }
