@@ -381,7 +381,7 @@ qu2d::partition::partition(size_t nx, size_t ny, point down, point upper)
 			sides_neib_to_edge_[vert_edges + horis_edges + ny * i + j].fit(2 * (ny*i + j));
 
 			//the upper triangle
-			sides_[2 * (ny*i + j) + 1].v1 = (ny + 1) * i + 1 + j + 1;
+			sides_[2 * (ny*i + j) + 1].v1 = (ny + 1) * (i + 1) + j + 1;
 			sides_[2 * (ny*i + j) + 1].v2 = (ny + 1) * i + j + 1;
 			sides_[2 * (ny*i + j) + 1].v3 = (ny + 1) * (i + 1) + j;
 			sides_[2 * (ny*i + j) + 1].e1 = ny * (i + 1) + j; //vertical edge
@@ -445,6 +445,8 @@ double qu2d::partition::integrate_over_side(qu2d::REAL_FUNC2D f, const side &k) 
 	double z3 = f(p3.first, p3.second);
 
 	double sqr = equal_square_ ? sqr_ : geron_formula(k);
+
+
 
 	return sqr * (z1 + z2 + z3) / 3;
 
